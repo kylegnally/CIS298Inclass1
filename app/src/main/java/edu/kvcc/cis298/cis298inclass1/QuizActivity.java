@@ -1,7 +1,9 @@
 package edu.kvcc.cis298.cis298inclass1;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -9,9 +11,17 @@ import android.widget.Toast;
 
 public class QuizActivity extends AppCompatActivity {
 
+    // used for logging to the logcat
+    private static final String TAG = "QuizActivity";
+
+    // used as the key in a key => value object called the bundle
+    // to save information between screen rotations
+    private static final String KEY_INDEX = "index";
+
     private Button mTrueButton;
     private Button mFalseButton;
     private Button mNextButton;
+    private Button mCheatButton;
     private TextView mQuestionTextView;
 
     // array from which we will pull questions. We send over the resource
@@ -31,7 +41,7 @@ public class QuizActivity extends AppCompatActivity {
     // the array index variable for the current question.
     private int mCurrentIndex = 0;
 
-    // ,ethod that will be used to update the question text on the view
+    // Method that will be used to update the question text on the view
     private void updateQuestion() {
         // get the question from the array. This is an integer because we are
         // fetching the memory address stored in the question that points to the
@@ -64,10 +74,29 @@ public class QuizActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate(Bundle) called");
         setContentView(R.layout.activity_quiz);
 
         // Get a reference to the textview that displays the question
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
+
+        // Check the savedInstanceState Bundle and see if there
+        // is an index that we need to fetch out so we display the correct
+        // question
+
+        // When the app first launches, there's no bundle. That only happens when
+        // switching activities or on screen rotation. Therefore we need to see if
+        // it is null before we try to pull info out.
+
+        if (savedInstanceState != null){
+
+            // get the value that is stored with the key of KEY_INDEX
+            // if there is no entry with that key, use 0 as a default
+            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+        }
+
+
+        //update the question now that we have the index
         updateQuestion();
 
 
@@ -101,5 +130,65 @@ public class QuizActivity extends AppCompatActivity {
                 updateQuestion();
             }
         });
+
+        mCheatButton = (Button) findViewById(R.id.cheat_button);
+        mCheatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // get the answer to the current question.
+
+                // To get the intent we need to start up the CheatActivity
+                // we call the newIntent method on the CheatActivity. That
+                // method returns us an Intent that is ready to start the
+                // new Activity.
+
+
+
+                boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
+                Intent i = CheatActivity.newIntent(QuizActivity.this, answerIsTrue);
+                // To start up a new activity. We then call startActivity
+                // with the intent as a parameter. The intent is used by the
+                // OS to determine what activity to start up.
+                // Activities are started by the OS, NOT the app.
+                startActivity(i);
+            }
+        });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        Log.i(TAG, "onSaveInstanceState() called");
+        savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart() called");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause() called");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop() called");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume() called");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy() called");
     }
 }
