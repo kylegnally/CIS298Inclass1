@@ -9,7 +9,16 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class CheatActivity extends AppCompatActivity {
-    private static final String EXTRA_ANSWER_IS_TRUE = "edu.kvcc.cis298.cis298inclass1.answer_is_true";
+
+    // This key is used to store the data on the intent
+    // that is created to get this activity started
+    private static final String EXTRA_ANSWER_IS_TRUE =
+            "edu.kvcc.cis298.cis298inclass1.answer_is_true";
+
+    // This key is used to store the returned data on the returned intent
+    // that is created to send the data back to the quiz activity.
+    private static final String EXTRA_ANSWER_SHOWN =
+            "edu.kvcc.cis298.cis298inclass1.answer_shown";
     private boolean mAnswerIsTrue;
 
     private TextView mAnswerTextView;
@@ -26,6 +35,14 @@ public class CheatActivity extends AppCompatActivity {
         Intent i = new Intent(packageContext, CheatActivity.class);
         i.putExtra(EXTRA_ANSWER_IS_TRUE, answerIsTrue);
         return i;
+    }
+
+    // this method will be called by QuizActivity to check and see if a user
+    // cheated or not. QuizActivity will send the Intent that contains the
+    // result data into this method, and this method will 'decode' the intent
+    // and return a bool to let you know whether the person cheated or not.
+    public static boolean wasAnswerShown(Intent result) {
+        return result.getBooleanExtra(EXTRA_ANSWER_SHOWN, false);
     }
 
     @Override
@@ -51,7 +68,23 @@ public class CheatActivity extends AppCompatActivity {
                 } else {
                     mAnswerTextView.setText(R.string.false_button);
                 }
+                setAnswerShownResult(true);
             }
         });
+    }
+
+    // method to create and set the return data for this activity
+    private void setAnswerShownResult(boolean isAnswerShown) {
+
+        // make a new intent to hold the return data.
+        // It will NOT be used to start a new activity.
+        // Intent now has double duty.
+        Intent data = new Intent();
+        // Put an extra just like we did when we are creating an intent to start an activity
+        data.putExtra(EXTRA_ANSWER_SHOWN, isAnswerShown);
+        // Call the Activity's setResult method to attain the intent as the return data.
+        // The first parameter is a CONST that says everything finished okay here.
+        // There are other CONSTs for when other things happen.
+        setResult(RESULT_OK, data);
     }
 }

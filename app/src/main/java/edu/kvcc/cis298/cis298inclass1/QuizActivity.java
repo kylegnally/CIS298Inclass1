@@ -1,5 +1,6 @@
 package edu.kvcc.cis298.cis298inclass1;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,6 +18,14 @@ public class QuizActivity extends AppCompatActivity {
     // used as the key in a key => value object called the bundle
     // to save information between screen rotations
     private static final String KEY_INDEX = "index";
+
+    // Declare a request code integer that can be sent with the
+    // startActivityForResult method. This way when we return to this
+    // activity, we can check the request code to see if
+    // it is the one that matches the one that we sent when we started
+    // the cheat activity
+
+    private static final int REQUEST_CODE_CHEAT = 0;
 
     private Button mTrueButton;
     private Button mFalseButton;
@@ -41,6 +50,9 @@ public class QuizActivity extends AppCompatActivity {
     // the array index variable for the current question.
     private int mCurrentIndex = 0;
 
+    // Class level variable to know whether the person used the CheatActivity
+    private boolean mIsCheater;
+
     // Method that will be used to update the question text on the view
     private void updateQuestion() {
         // get the question from the array. This is an integer because we are
@@ -62,12 +74,21 @@ public class QuizActivity extends AppCompatActivity {
         //then they got it right. Correct answers will be when both variables are the
         // same. If they're different, the answer is wrong.
         // Set the messageResId once we determine what the answer is.
-        if (userPressedTrue == answerIsTrue) {
-            messageResId = R.string.correct_toast;
+
+        // Now we will set the ktoast message to display a different message
+        // if the user cheated
+        if (mIsCheater) {
+
+            // set the answer to the "do not cheat" string
+            messageResId = R.string.judgment_toast;
         } else {
-            messageResId = R.string.incorrect_toast;
+            if (userPressedTrue == answerIsTrue) {
+                messageResId = R.string.correct_toast;
+            } else {
+                messageResId = R.string.incorrect_toast;
+            }
+            // Make this toast like the other toast.
         }
-        // Make this toast like the other toast.
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
     }
 
@@ -127,6 +148,11 @@ public class QuizActivity extends AppCompatActivity {
                 // When we get to mod 5 we set back to 0 so we see the questions
                 // in a neverending loop.
                 mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+
+                // reset the cheat boolean
+                mIsCheater = false;
+
+                // update the question
                 updateQuestion();
             }
         });
@@ -150,11 +176,41 @@ public class QuizActivity extends AppCompatActivity {
                 // with the intent as a parameter. The intent is used by the
                 // OS to determine what activity to start up.
                 // Activities are started by the OS, NOT the app.
-                startActivity(i);
+                startActivityForResult(i, REQUEST_CODE_CHEAT);
             }
         });
     }
 
+    // handle returning from another activity
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // if something went wrong in the other activity
+        // and the result code is not OK, we can just return. No need to do any work.
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+
+        // check the request code and see which one it is. Since we only have
+        // one other activity, it's safe to say it's be that one. But,
+        // if we had more activities, we'd want to know which one we're returning
+        // from.
+        if (requestCode == REQUEST_CODE_CHEAT) {
+            // check to see if the result is null for some reason
+            if (data == null) {
+                return;
+            }
+
+            // everything is okay and we can do the deed! We will use the
+            // static method on the cheat class to 'decode' the returned data
+            // and tell us if the person cheated or not
+            mIsCheater = CheatActivity.wasAnswerShown(data);
+        }
+    }
+
+
+    // handle screen rotation
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
