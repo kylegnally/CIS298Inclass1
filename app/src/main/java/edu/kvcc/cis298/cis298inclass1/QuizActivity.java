@@ -59,6 +59,9 @@ public class QuizActivity extends AppCompatActivity {
         mChoice3RadioButton.setText(choices[2]);
         mChoice4RadioButton.setText(choices[3]);
 
+        // reset the radio group
+        mQuestiongroup.clearCheck();
+
     }
 
     private void checkAnswer(int selectedRadioButtonId) {
@@ -110,8 +113,13 @@ public class QuizActivity extends AppCompatActivity {
                 // will NOT return any string resource Ids about the question.
                 // It is operating on the widget, and thus returns the Id of the widget
                 int selectedAnswerId = mQuestiongroup.getCheckedRadioButtonId();
-                // call checkAnswer sending in the selectedAnswerId
-                checkAnswer(selectedAnswerId);
+
+                if (selectedAnswerId == -1) {
+                    Toast.makeText(QuizActivity.this, R.string.unselected_toast, Toast.LENGTH_SHORT).show();
+                } else {
+                    // call checkAnswer sending in the selectedAnswerId
+                    checkAnswer(selectedAnswerId);
+                }
             }
         });
 
